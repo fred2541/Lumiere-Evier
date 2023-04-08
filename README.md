@@ -14,3 +14,34 @@ J'ai donc connecté un capteur d'ultrasons sur le Sonoff R2 pour mesurer la dist
 - SONOFF BASIC R2
 - Ultrasonic Sensor HC-SR04
 - Ruban de Led avec transfo 220V
+
+
+# Le code:
+```
+on System#Boot do
+let,1,0
+endon
+
+on SR04#Distance>5 do
+   gpio,1,0 // reset after each measure
+   if [SR04#Distance]<100  // Ok
+   Let,1,[VAR#1]+1
+     if [var#1]=2  // If present on two cycle of measure 
+       gpio,12,1 // Relais ON
+       let,1,0 // reset presence var to 0
+       timerSet,1,0 // reset Timer1
+       timerSet,1,30 // Start timer1 for 30 sec
+     endif  // End present two cycle
+   else
+   let,1,0 // reset presence var to 0
+     endif
+   endif
+ endon
+
+On Rules#Timer=1 do
+   gpio,12,0  // Relais off on Timer end
+
+on SR04#Distance=0 do  // if Distance=0 --> bug, reset capteur
+   gpio,1,0
+ endon
+ ```
